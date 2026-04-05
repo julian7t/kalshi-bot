@@ -11,7 +11,7 @@ PAPER_MODE  = _e("LIVE_MODE", "false").lower() != "true"
 
 # ── Signal / strategy ─────────────────────────────────────────────────────────
 MIN_CONFIDENCE          = float(_e("MIN_CONFIDENCE",          "0.70"))  # 70%
-GAME_PROGRESS_THRESHOLD = float(_e("GAME_PROGRESS_THRESHOLD", "0.60"))  # 60% through window
+GAME_PROGRESS_THRESHOLD = float(_e("GAME_PROGRESS_THRESHOLD", "0.30"))  # 30% through window
 BET_FRACTION            = float(_e("BET_FRACTION",            "0.03"))  # 3% of portfolio
 
 # ── Position sizing ───────────────────────────────────────────────────────────
