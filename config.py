@@ -10,7 +10,7 @@ _e = os.environ.get
 PAPER_MODE  = _e("LIVE_MODE", "false").lower() != "true"
 
 # ── Signal / strategy ─────────────────────────────────────────────────────────
-MIN_CONFIDENCE          = float(_e("MIN_CONFIDENCE",          "0.75"))  # 75%
+MIN_CONFIDENCE          = float(_e("MIN_CONFIDENCE",          "0.70"))  # 75%
 GAME_PROGRESS_THRESHOLD = float(_e("GAME_PROGRESS_THRESHOLD", "0.65"))  # 65% through window
 BET_FRACTION            = float(_e("BET_FRACTION",            "0.03"))  # 3% of portfolio
 
