@@ -1,0 +1,110 @@
+{
+  "open": {
+    "KXMVESPORTSMULTIGAMEEXTENDED-S2026B6DCBEBFAC1-587C86E15F6": {
+      "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S2026B6DCBEBFAC1-587C86E15F6",
+      "title": "yes Milwaukee,yes New York Y,yes Atlanta,yes Philadelphia,yes San Francisco,yes Jacob Wilson: 1+,yes Philadelphia,yes San Antonio,yes UConn,yes Arizona,yes West Virginia",
+      "side": "no",
+      "yes_price": 1,
+      "entry_price_cents": 99,
+      "contracts": 1,
+      "cost_cents": 99,
+      "opened_at": "2026-04-04T20:18:26.215821+00:00"
+    },
+    "KXMVESPORTSMULTIGAMEEXTENDED-S202651CCE344815-8ECF99F232D": {
+      "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S202651CCE344815-8ECF99F232D",
+      "title": "yes Milwaukee,yes Texas,yes Arizona,yes Chicago C,yes Philadelphia,yes New York M,yes Los Angeles A,yes Philadelphia",
+      "side": "no",
+      "yes_price": 1,
+      "entry_price_cents": 99,
+      "contracts": 1,
+      "cost_cents": 99,
+      "opened_at": "2026-04-04T20:18:26.216380+00:00"
+    },
+    "KXMVESPORTSMULTIGAMEEXTENDED-S2026797DBDC3E59-ED4E631BAF7": {
+      "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S2026797DBDC3E59-ED4E631BAF7",
+      "title": "yes Toronto,yes Baltimore,yes Los Angeles D,yes San Diego,yes Texas,yes New York Y,yes Houston wins by over 1.5 runs,yes San Antonio,yes Detroit wins by over 1.5 Points,yes Miami wins by over 15.5 Points",
+      "side": "no",
+      "yes_price": 1,
+      "entry_price_cents": 99,
+      "contracts": 1,
+      "cost_cents": 99,
+      "opened_at": "2026-04-04T20:18:26.216611+00:00"
+    },
+    "KXMVESPORTSMULTIGAMEEXTENDED-S20263C2CB5289BA-79E54CF6251": {
+      "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S20263C2CB5289BA-79E54CF6251",
+      "title": "yes Milwaukee,yes Texas,yes Arizona,yes Chicago C,yes Philadelphia,yes New York M,yes Philadelphia",
+      "side": "no",
+      "yes_price": 2,
+      "entry_price_cents": 98,
+      "contracts": 1,
+      "cost_cents": 98,
+      "opened_at": "2026-04-04T20:18:26.216844+00:00"
+    },
+    "KXMVESPORTSMULTIGAMEEXTENDED-S20263A34D7C564E-8B2F8B67869": {
+      "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S20263A34D7C564E-8B2F8B67869",
+      "title": "yes Baltimore,yes A's,yes Boston,yes New York Y wins by over 1.5 runs,yes Atlanta wins by over 1.5 runs",
+      "side": "no",
+      "yes_price": 2,
+      "entry_price_cents": 98,
+      "contracts": 1,
+      "cost_cents": 98,
+      "opened_at": "2026-04-04T20:18:26.217146+00:00"
+    },
+    "KXMVECROSSCATEGORY-S2026C7858F0F3EE-15306095110": {
+      "ticker": "KXMVECROSSCATEGORY-S2026C7858F0F3EE-15306095110",
+      "title": "yes Pittsburgh,yes Houston,yes Boston,yes New York Y,yes Arizona,yes Philadelphia,yes Over 7.5 runs scored,yes UConn",
+      "side": "no",
+      "yes_price": 3,
+      "entry_price_cents": 97,
+      "contracts": 1,
+      "cost_cents": 97,
+      "opened_at": "2026-04-04T20:18:26.217773+00:00"
+    },
+    "KXMVESPORTSMULTIGAMEEXTENDED-S202625A6EBB9927-B7114A396E7": {
+      "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S202625A6EBB9927-B7114A396E7",
+      "title": "yes Toronto,yes Over 11.5 runs scored,yes Dione Barbosa,yes Kai Kamaka III,yes Alice Pereira,yes Darrius Flowers",
+      "side": "no",
+      "yes_price": 4,
+      "entry_price_cents": 96,
+      "contracts": 1,
+      "cost_cents": 96,
+      "opened_at": "2026-04-04T20:18:26.218322+00:00"
+    },
+    "KXMVECROSSCATEGORY-S20266D1F214F73D-D13C7D18B11": {
+      "ticker": "KXMVECROSSCATEGORY-S20266D1F214F73D-D13C7D18B11",
+      "title": "yes Toronto,yes Detroit,yes San Antonio,yes Miami,yes Houston,yes Orlando,yes Oklahoma City",
+      "side": "no",
+      "yes_price": 5,
+      "entry_price_cents": 95,
+      "contracts": 1,
+      "cost_cents": 95,
+      "opened_at": "2026-04-04T20:18:26.218890+00:00"
+    },
+    "KXMVECROSSCATEGORY-S20269713DF7DB21-F6698C78C3D": {
+      "ticker": "KXMVECROSSCATEGORY-S20269713DF7DB21-F6698C78C3D",
+      "title": "yes Chicago WS,yes Pittsburgh,yes Houston,yes Los Angeles D,yes San Antonio,yes Illinois,yes West Virginia",
+      "side": "no",
+      "yes_price": 6,
+      "entry_price_cents": 94,
+      "contracts": 1,
+      "cost_cents": 94,
+      "opened_at": "2026-04-04T20:18:26.219457+00:00"
+    },
+    "KXMVESPORTSMULTIGAMEEXTENDED-S2026A3756142507-9D03890D358": {
+      "ticker": "KXMVESPORTSMULTIGAMEEXTENDED-S2026A3756142507-9D03890D358",
+      "title": "yes Texas,yes New York Y,yes Tampa Bay,yes Chicago C,yes Philadelphia",
+      "side": "no",
+      "yes_price": 6,
+      "entry_price_cents": 94,
+      "contracts": 1,
+      "cost_cents": 94,
+      "opened_at": "2026-04-04T20:18:26.220113+00:00"
+    }
+  },
+  "closed": [],
+  "stats": {
+    "total_paper_pl": 0,
+    "wins": 0,
+    "losses": 0
+  }
+}

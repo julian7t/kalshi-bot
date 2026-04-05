@@ -1,0 +1,23 @@
+{
+  "ts": "2026-04-05T15:35:47.680677+00:00",
+  "status": "ok",
+  "safe_mode": false,
+  "safe_mode_reason": "",
+  "cycle": 13,
+  "loop_ms": 1078.9,
+  "markets_fetched": 40,
+  "candidates_evaluated": 0,
+  "trades_placed_this_cycle": 0,
+  "trades_total": 0,
+  "exposure_cents": 0.0,
+  "consecutive_idle": 13,
+  "last_kalshi_fetch_ok": "2026-04-05T15:35:47.156962+00:00",
+  "last_sports_fetch_ok": "2026-04-05T15:35:47.679192+00:00",
+  "last_order_placed": null,
+  "last_heartbeat": "2026-04-05T15:35:47.680677+00:00",
+  "kalshi_fail_count": 0,
+  "sports_fail_count": 0,
+  "order_fail_streak": 0,
+  "integrity_fail_count": 0,
+  "integrity_ok": true
+}

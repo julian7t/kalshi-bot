@@ -59,6 +59,10 @@ from portfolio import PortfolioAnalyzer
 from scanner import Scanner
 from timing import TimingClassifier
 from watchdog import Watchdog
+import weather_config as wcfg
+from weather_paper import record_weather_signal
+from weather_risk import approve_weather_trade, compute_weather_position_size
+from weather_strategy import evaluate_weather_market
 
 
 # ── Logging ───────────────────────────────────────────────────────────────────
@@ -515,6 +519,158 @@ def run_scan(live_open_orders: list, live_positions: dict, state: _ScanState):
                                 level="WARNING")
             metrics.print_summary()
             return
+
+    # ── Weather strategy scan ────────────────────────────────────────────────
+    #
+    # Flow:
+    #   evaluate → paper-record always → alert → [if live enabled] risk-check → order
+    #
+    # Sports execution below this block is NOT touched.
+    # ─────────────────────────────────────────────────────────────────────────
+    weather_signals_found = 0
+    weather_orders_placed = 0
+
+    for _mkt in markets:
+        try:
+            w_signal = evaluate_weather_market(_mkt)
+        except Exception as _we:
+            logger.warning("[WEATHER] evaluate error: %s", _we)
+            continue
+
+        if w_signal is None:
+            continue
+
+        weather_signals_found += 1
+        _wticker = w_signal["ticker"]
+
+        # ── 1. Paper-record (always, regardless of live flag) ─────────────
+        try:
+            record_weather_signal(w_signal, _mkt)
+        except Exception as _wpe:
+            logger.warning("[WEATHER] paper record failed: %s", _wpe)
+
+        # ── 2. WEATHER_SIGNAL alert ───────────────────────────────────────
+        alerting.send_alert(
+            "WEATHER_SIGNAL",
+            (
+                f"{w_signal['city']} {_wticker} side={w_signal['side'].upper()} | "
+                f"forecast={w_signal['forecast_high']:.1f}F | "
+                f"model={w_signal['model_prob']:.2f} market={w_signal['market_prob']:.2f} | "
+                f"raw={w_signal['raw_edge']:.2f} net={w_signal['net_edge']:.2f} | "
+                f"spread={w_signal['spread_cents']:.0f}¢ conf={w_signal['confidence']:.2f}"
+            ),
+            level="INFO",
+            details={
+                "ticker":        _wticker,
+                "city":          w_signal["city"],
+                "side":          w_signal["side"].upper(),
+                "forecast_high": f"{w_signal['forecast_high']:.1f}°F",
+                "sigma_f":       f"{w_signal['sigma_f']:.1f}°F",
+                "model_prob":    f"{w_signal['model_prob']:.3f}",
+                "market_prob":   f"{w_signal['market_prob']:.3f}",
+                "raw_edge":      f"{w_signal['raw_edge']:.3f}",
+                "net_edge":      f"{w_signal['net_edge']:.3f}",
+                "spread_cents":  f"{w_signal['spread_cents']:.0f}¢",
+                "confidence":    f"{w_signal['confidence']:.2f}",
+                "reason":        w_signal["reason"],
+            },
+        )
+
+        # ── 3. Live execution branch ──────────────────────────────────────
+        if not wcfg.WEATHER_LIVE_ENABLED:
+            # Emit once per boot cycle, not per signal, to avoid spam
+            logger.debug("[WEATHER] live disabled — signal alerted and paper-recorded only")
+            continue
+
+        if config.PAPER_MODE:
+            # Sports paper mode → weather also stays in paper mode
+            logger.debug("[WEATHER] PAPER_MODE active — skipping live weather order")
+            continue
+
+        # ── 3a. Risk approval ─────────────────────────────────────────────
+        try:
+            approved, block_reason = approve_weather_trade(w_signal)
+        except Exception as _wr_exc:
+            logger.error("[WEATHER] risk approval error: %s", _wr_exc)
+            approved, block_reason = False, f"risk check error: {_wr_exc}"
+
+        if not approved:
+            alerting.send_alert(
+                "WEATHER_RISK_BLOCKED",
+                f"{_wticker} — {block_reason}",
+                level="WARNING",
+                details={
+                    "ticker":       _wticker,
+                    "block_reason": block_reason,
+                    "net_edge":     f"{w_signal['net_edge']:.3f}",
+                    "confidence":   f"{w_signal['confidence']:.2f}",
+                },
+            )
+            continue
+
+        # ── 3b. Position sizing ───────────────────────────────────────────
+        try:
+            contracts = compute_weather_position_size(w_signal, balance_cents / 100.0)
+        except Exception as _sz_exc:
+            logger.error("[WEATHER] sizing error: %s", _sz_exc)
+            contracts = 1
+
+        side      = w_signal["side"]
+        yes_price = int(w_signal.get("yes_price", w_signal["market_prob"] * 100))
+
+        # ── 3c. Place order via existing order manager ────────────────────
+        try:
+            result = om.place_order_safe(
+                ticker           = _wticker,
+                side             = side,
+                count            = contracts,
+                yes_price        = yes_price,
+                live_open_orders = live_open_orders,
+                live_positions   = live_positions,
+                exec_decision    = None,
+                engine           = None,
+                fair_probability = w_signal["model_prob"],
+            )
+        except Exception as _ord_exc:
+            logger.error("[WEATHER] order placement error: %s", _ord_exc)
+            result = None
+
+        if result:
+            weather_orders_placed += 1
+            alerting.send_alert(
+                "WEATHER_ORDER_PLACED",
+                (
+                    f"{_wticker} {side.upper()} {contracts}@{yes_price}¢ | "
+                    f"city={w_signal['city']} net={w_signal['net_edge']:.3f} "
+                    f"conf={w_signal['confidence']:.2f}"
+                ),
+                level="INFO",
+                details={
+                    "ticker":    _wticker,
+                    "side":      side.upper(),
+                    "contracts": str(contracts),
+                    "yes_price": f"{yes_price}¢",
+                    "city":      w_signal["city"],
+                    "net_edge":  f"{w_signal['net_edge']:.3f}",
+                    "conf":      f"{w_signal['confidence']:.2f}",
+                },
+            )
+
+    if weather_signals_found:
+        logger.info(
+            "[WEATHER] %d signal(s) found — %d paper-recorded, %d live order(s) placed.",
+            weather_signals_found, weather_signals_found, weather_orders_placed,
+        )
+    elif not wcfg.WEATHER_LIVE_ENABLED:
+        logger.debug("[WEATHER] 0 signals this scan (live disabled).")
+
+    # ── WEATHER_LIVE_DISABLED notice (once per scan, not per market) ──────
+    if not wcfg.WEATHER_LIVE_ENABLED and weather_signals_found > 0:
+        alerting.send_alert(
+            "WEATHER_LIVE_DISABLED",
+            f"{weather_signals_found} signal(s) suppressed — set WEATHER_LIVE_ENABLED=True to trade",
+            level="INFO",
+        )
 
     # ── Signal scan (sports-data-enriched) ───────────────────────────────────
     try:
