@@ -10,8 +10,8 @@ _e = os.environ.get
 PAPER_MODE  = _e("LIVE_MODE", "false").lower() != "true"
 
 # ── Signal / strategy ─────────────────────────────────────────────────────────
-MIN_CONFIDENCE          = float(_e("MIN_CONFIDENCE",          "0.65"))  # 20%
-GAME_PROGRESS_THRESHOLD = float(_e("GAME_PROGRESS_THRESHOLD", "0.20"))  # 20% through window
+MIN_CONFIDENCE          = float(_e("MIN_CONFIDENCE",          "0.65"))  # 65%
+GAME_PROGRESS_THRESHOLD = float(_e("GAME_PROGRESS_THRESHOLD", "0.65"))  # 65% through window
 BET_FRACTION            = float(_e("BET_FRACTION",            "0.03"))  # 3% of portfolio
 
 # ── Position sizing ───────────────────────────────────────────────────────────
@@ -19,9 +19,25 @@ MIN_CONTRACTS = int(_e("MIN_CONTRACTS", "1"))
 MAX_CONTRACTS = int(_e("MAX_CONTRACTS", "20"))
 
 # ── Scan ──────────────────────────────────────────────────────────────────────
-MARKETS_TO_SCAN    = int(_e("MARKETS_TO_SCAN",    "40"))
+MARKETS_TO_SCAN    = int(_e("MARKETS_TO_SCAN",    "200"))
 SCAN_INTERVAL      = int(_e("SCAN_INTERVAL",       "15"))   # seconds
 MAX_OPEN_POSITIONS = int(_e("MAX_OPEN_POSITIONS",  "4"))
+
+# ── Sports series filtering ───────────────────────────────────────────────────
+# Comma-separated list of Kalshi series tickers to scan.
+# When set, the bot fetches ONLY these series instead of the default
+# /markets endpoint (which returns non-sports markets first).
+# Set to empty string "" to disable and fall back to the default paginated scan.
+_raw_series = _e("SPORTS_SERIES",
+    "KXNBAGAME,KXMLBGAME,KXNHLGAME,KXNFLAGAME,"
+    "KXNCAABGAME,KXNCAAFGAME,KXMLSGAME,"
+    "KXLALIGAGAME,KXBUNDESLIGAGAME,KXSERIEAGAME,"
+    "KXLIGAMXGAME,KXPGATOUR"
+)
+SPORTS_SERIES: list[str] = [s.strip() for s in _raw_series.split(",") if s.strip()]
+
+# Max markets to fetch per series (each series gets up to this many markets)
+MARKETS_PER_SERIES = int(_e("MARKETS_PER_SERIES", "50"))
 
 # ── Risk management ───────────────────────────────────────────────────────────
 MIN_BALANCE_CENTS       = int(_e("MIN_BALANCE_CENTS",       "500"))   # $5.00

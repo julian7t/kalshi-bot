@@ -203,10 +203,12 @@ def get_balance() -> dict:
 
 # ── Markets ───────────────────────────────────────────────────────────────────
 
-def get_markets(limit: int = 100, cursor: str = None) -> dict:
+def get_markets(limit: int = 100, cursor: str = None, series_ticker: str = None) -> dict:
     params = {"limit": limit}
     if cursor:
         params["cursor"] = cursor
+    if series_ticker:
+        params["series_ticker"] = series_ticker
     return api_get("/markets", params=params)
 
 
@@ -221,6 +223,44 @@ def get_all_open_markets(max_markets: int = 200) -> list:
         if not cursor or not page:
             break
     return markets
+
+
+def get_sports_markets(series_list: list[str], max_per_series: int = 50) -> list:
+    """
+    Fetch open markets across a list of sports series tickers.
+    Returns a deduplicated list of all markets found.
+
+    Uses series_ticker filter so we only pull sports markets — not political,
+    financial, or weather markets that dominate the default /markets sort order.
+    """
+    import logging
+    log = logging.getLogger("kalshi_bot.client")
+
+    seen:    set  = set()
+    results: list = []
+
+    for series in series_list:
+        try:
+            cursor = None
+            fetched = 0
+            while fetched < max_per_series:
+                batch = min(100, max_per_series - fetched)
+                data  = get_markets(limit=batch, cursor=cursor, series_ticker=series)
+                page  = data.get("markets", [])
+                for m in page:
+                    t = m.get("ticker")
+                    if t and t not in seen:
+                        seen.add(t)
+                        results.append(m)
+                fetched += len(page)
+                cursor   = data.get("cursor")
+                if not cursor or not page:
+                    break
+            log.debug("[CLIENT] series=%-24s → %d markets", series, fetched)
+        except Exception as exc:
+            log.warning("[CLIENT] Failed to fetch series %s: %s", series, exc)
+
+    return results
 
 
 def get_market(ticker: str) -> dict:

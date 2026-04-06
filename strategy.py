@@ -86,13 +86,22 @@ def find_signal(market: dict) -> dict | None:
 
     # Must be active and not yet settled
     if status not in ("active", "open"):
+        logger.debug("[STRATEGY] SKIP %-28s status=%s (need active/open)", ticker, status or "none")
         return None
     if market.get("result"):
+        logger.debug("[STRATEGY] SKIP %-28s already has result=%s", ticker, market["result"])
         return None
 
     # Timing gate — must be >= 65% through the event window
     progress = _game_progress(market)
-    if progress is None or progress < GAME_PROGRESS_THRESHOLD:
+    if progress is None:
+        logger.debug("[STRATEGY] SKIP %-28s progress=unknown (missing open_time/close_time)", ticker)
+        return None
+    if progress < GAME_PROGRESS_THRESHOLD:
+        logger.debug(
+            "[STRATEGY] SKIP %-28s progress=%.1f%% < threshold=%.0f%%",
+            ticker, progress * 100, GAME_PROGRESS_THRESHOLD * 100,
+        )
         return None
 
     yes_bid_c = _cents(market.get("yes_bid_dollars"))
@@ -101,6 +110,7 @@ def find_signal(market: dict) -> dict | None:
     has_ask   = yes_ask_c is not None and yes_ask_c > 0
 
     if not has_bid and not has_ask:
+        logger.debug("[STRATEGY] SKIP %-28s no bid or ask price available", ticker)
         return None
 
     threshold = MIN_CONFIDENCE * 100  # e.g. 85.0
@@ -118,35 +128,63 @@ def find_signal(market: dict) -> dict | None:
     # Both sides quoted — use mid-price
     if has_bid and has_ask:
         if yes_ask_c >= 99 or yes_bid_c >= 99:
+            logger.debug("[STRATEGY] SKIP %-28s price at/near 99¢ (bid=%.0f ask=%.0f)",
+                         ticker, yes_bid_c, yes_ask_c)
             return None
         mid     = (yes_bid_c + yes_ask_c) / 2.0
         no_prob = 100.0 - mid
         if mid >= threshold:
+            logger.debug("[STRATEGY] PASS %-28s YES mid=%.0f%% >= threshold=%.0f%% progress=%.0f%%",
+                         ticker, mid, threshold, progress * 100)
             return sig("yes", yes_ask_c, mid / 100.0)
         if no_prob >= threshold:
+            logger.debug("[STRATEGY] PASS %-28s NO  prob=%.0f%% >= threshold=%.0f%% progress=%.0f%%",
+                         ticker, no_prob, threshold, progress * 100)
             return sig("no", yes_bid_c, no_prob / 100.0)
+        logger.debug(
+            "[STRATEGY] SKIP %-28s confidence too low: YES=%.0f%% NO=%.0f%% threshold=%.0f%% progress=%.0f%%",
+            ticker, mid, no_prob, threshold, progress * 100,
+        )
         return None
 
     # Ask-only
     if has_ask and not has_bid:
         if yes_ask_c >= 99:
+            logger.debug("[STRATEGY] SKIP %-28s ask=%.0f¢ at/near 99 (ask-only)", ticker, yes_ask_c)
             return None
         no_prob = 100.0 - yes_ask_c
         if yes_ask_c >= threshold:
+            logger.debug("[STRATEGY] PASS %-28s YES ask=%.0f%% >= threshold=%.0f%% progress=%.0f%%",
+                         ticker, yes_ask_c, threshold, progress * 100)
             return sig("yes", yes_ask_c, yes_ask_c / 100.0)
         if no_prob >= threshold:
+            logger.debug("[STRATEGY] PASS %-28s NO  prob=%.0f%% >= threshold=%.0f%% progress=%.0f%%",
+                         ticker, no_prob, threshold, progress * 100)
             return sig("no", yes_ask_c, no_prob / 100.0)
+        logger.debug(
+            "[STRATEGY] SKIP %-28s confidence too low: YES=%.0f%% NO=%.0f%% threshold=%.0f%% progress=%.0f%% (ask-only)",
+            ticker, yes_ask_c, no_prob, threshold, progress * 100,
+        )
         return None
 
     # Bid-only
     if has_bid and not has_ask:
         if yes_bid_c >= 99:
+            logger.debug("[STRATEGY] SKIP %-28s bid=%.0f¢ at/near 99 (bid-only)", ticker, yes_bid_c)
             return None
         no_prob = 100.0 - yes_bid_c
         if yes_bid_c >= threshold:
+            logger.debug("[STRATEGY] PASS %-28s YES bid=%.0f%% >= threshold=%.0f%% progress=%.0f%%",
+                         ticker, yes_bid_c, threshold, progress * 100)
             return sig("yes", yes_bid_c, yes_bid_c / 100.0)
         if no_prob >= threshold:
+            logger.debug("[STRATEGY] PASS %-28s NO  prob=%.0f%% >= threshold=%.0f%% progress=%.0f%%",
+                         ticker, no_prob, threshold, progress * 100)
             return sig("no", yes_bid_c, no_prob / 100.0)
+        logger.debug(
+            "[STRATEGY] SKIP %-28s confidence too low: YES=%.0f%% NO=%.0f%% threshold=%.0f%% progress=%.0f%% (bid-only)",
+            ticker, yes_bid_c, no_prob, threshold, progress * 100,
+        )
         return None
 
     return None
@@ -154,8 +192,20 @@ def find_signal(market: dict) -> dict | None:
 
 def scan_markets(markets: list) -> list:
     """Return a confidence-sorted list of signals from a market batch."""
-    signals = [s for m in markets if (s := find_signal(m))]
+    signals = []
+    for m in markets:
+        s = find_signal(m)
+        if s:
+            signals.append(s)
+
     signals.sort(key=lambda s: s["confidence"], reverse=True)
+
+    logger.info(
+        "[STRATEGY] Evaluated %d markets → %d passed gates "
+        "(conf≥%.0f%% progress≥%.0f%%)",
+        len(markets), len(signals),
+        MIN_CONFIDENCE * 100, GAME_PROGRESS_THRESHOLD * 100,
+    )
     return signals
 
 

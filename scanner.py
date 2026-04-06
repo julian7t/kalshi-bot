@@ -296,8 +296,14 @@ class Scanner:
         # ── Model evaluation ──────────────────────────────────────────────
         enriched = evaluate_signal(sig, game_state, volatility=volatility)
         if enriched is None:
-            _log_audit(sig, game_state, None, volatility, momentum, vol_label,
-                       "model blocked")
+            # model.evaluate_signal already logged the specific block reason at INFO;
+            # surface it here too so the [AUDIT] row shows the real cause.
+            reject = (
+                "model blocked — see [MODEL] SKIP/BLOCK line above for reason "
+                f"(ticker={ticker} progress={sig.get('progress', 0):.0%} "
+                f"conf={sig.get('confidence', 0):.0%})"
+            )
+            _log_audit(sig, game_state, None, volatility, momentum, vol_label, reject)
             return None
 
         enriched["matched_event_id"] = match_id

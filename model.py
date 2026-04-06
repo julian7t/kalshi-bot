@@ -189,12 +189,12 @@ def evaluate_signal(
         "reason":             model_result.reason,
     })
 
-    logger.debug(
-        "[MODEL] %s mtype=%s model=%s sport=%s "
-        "fair=%.0f%% mkt=%.0f%% edge=%+.0f%% conf=%.0f%% vol=%.2f",
-        ticker, market_type, model_result.model_name, sport,
+    logger.info(
+        "[MODEL] PASS %-28s sport=%-10s mtype=%-12s model=%-20s "
+        "fair=%.0f%% mkt=%.0f%% edge=%+.0f%% net=%+.0f%% conf=%.0f%% vol=%.3f",
+        ticker, sport, market_type, model_result.model_name,
         fair_prob * 100, market_yes_prob * 100,
-        raw_edge * 100, confidence * 100, volatility,
+        raw_edge * 100, net_edge * 100, confidence * 100, volatility,
     )
 
     return enriched

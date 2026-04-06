@@ -75,8 +75,9 @@ def _setup_logging():
     fh.setLevel(logging.DEBUG)
     fh.setFormatter(fmt)
 
+    _console_level = os.environ.get("LOG_LEVEL_CONSOLE", "INFO").upper()
     ch = logging.StreamHandler(sys.stdout)
-    ch.setLevel(logging.INFO)
+    ch.setLevel(getattr(logging, _console_level, logging.INFO))
     ch.setFormatter(fmt)
 
     root = logging.getLogger("kalshi_bot")
@@ -491,10 +492,24 @@ def run_scan(live_open_orders: list, live_positions: dict, state: _ScanState):
             logger.warning("[STALE DATA] Last market fetch was %.0fs ago (warn=%ds)",
                            data_age, config.DATA_FRESHNESS_TIMEOUT)
 
-    logger.info("Scanning up to %d markets...", config.MARKETS_TO_SCAN)
+    if config.SPORTS_SERIES:
+        logger.info(
+            "Scanning sports series (%d): %s  max_per_series=%d",
+            len(config.SPORTS_SERIES), ",".join(config.SPORTS_SERIES),
+            config.MARKETS_PER_SERIES,
+        )
+    else:
+        logger.info("Scanning up to %d markets (no series filter)...", config.MARKETS_TO_SCAN)
+
     fetch_start = time.time()
     try:
-        markets = kc.get_all_open_markets(max_markets=config.MARKETS_TO_SCAN)
+        if config.SPORTS_SERIES:
+            markets = kc.get_sports_markets(
+                series_list=config.SPORTS_SERIES,
+                max_per_series=config.MARKETS_PER_SERIES,
+            )
+        else:
+            markets = kc.get_all_open_markets(max_markets=config.MARKETS_TO_SCAN)
         state.health.record_kalshi_fetch_ok()
         fetch_ms = (time.time() - fetch_start) * 1000
         logger.info("Fetched %d markets in %.0fms.", len(markets), fetch_ms)
